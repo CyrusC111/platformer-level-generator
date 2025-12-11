@@ -1,73 +1,24 @@
-// ---------------------------
-// CONFIG
-// ---------------------------
-const GRID_WIDTH = 100;      // number of tiles horizontally
-const GRID_HEIGHT = 100;     // number of tiles vertically
-const EMPTY = 0;
-const BLOCK = 1;
+// Grid size
+const ROWS = 100;
+const COLS = 100;
 
-// ---------------------------
-// GENERATE EMPTY GRID
-// ---------------------------
-function createEmptyGrid() {
-    const grid = [];
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-        const row = [];
-        for (let x = 0; x < GRID_WIDTH; x++) {
-            row.push(EMPTY);
-        }
-        grid.push(row);
-    }
-    return grid;
-}
+// Level stored here
+let level = [];
 
-// ---------------------------
-// ADD RANDOM PLATFORMS
-// ---------------------------
-function addRandomPlatforms(grid, density = 0.12) {
-    for (let y = 3; y < GRID_HEIGHT; y++) {
-        for (let x = 0; x < GRID_WIDTH; x++) {
-            if (Math.random() < density) {
-                grid[y][x] = BLOCK;
-            }
-        }
-    }
-}
+// Canvas
+const canvas = document.getElementById("preview");
+const ctx = canvas.getContext("2d");
+const cellSize = canvas.width / COLS;
 
-// ---------------------------
-// ADD WALL-JUMP SECTION
-// ---------------------------
-// Creates a vertical gap between two walls (like a narrow corridor)
-function addWallJumpSection(grid) {
-    const corridorX = Math.floor(Math.random() * (GRID_WIDTH - 6)) + 3;
+// Generate button
+document.getElementById("generateButton").onclick = () => {
+    level = generateLevel();
+    drawLevel();
+};
 
-    for (let y = 5; y < GRID_HEIGHT - 5; y++) {
-        // Left wall of corridor
-        grid[y][corridorX] = BLOCK;
-
-        // Right wall of corridor
-        grid[y][corridorX + 3] = BLOCK;
-    }
-}
-
-// ---------------------------
-// GENERATOR ENTRY POINT
-// ---------------------------
-function generateLevel() {
-    let grid = createEmptyGrid();
-    addRandomPlatforms(grid);
-    addWallJumpSection(grid);
-
-    return grid;
-}
-
-// ---------------------------
-// EXPORT JSON
-// ---------------------------
-function exportJSON() {
-    const level = generateLevel();
-    const json = JSON.stringify({ grid: level }, null, 2);
-
+// Download button
+document.getElementById("downloadButton").onclick = () => {
+    const json = JSON.stringify(level);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
@@ -75,11 +26,53 @@ function exportJSON() {
     a.href = url;
     a.download = "level.json";
     a.click();
+};
+
+// ===================================
+// LEVEL GENERATION LOGIC
+// ===================================
+function generateLevel() {
+    // create empty grid
+    let grid = [];
+    for (let r = 0; r < ROWS; r++) {
+        const row = new Array(COLS).fill(0); // 0 = empty
+        grid.push(row);
+    }
+
+    // random blocks
+    for (let i = 0; i < 80; i++) {
+        grid[rand(ROWS)][rand(COLS)] = 1; // 1 = normal block
+    }
+
+    // create a forced wall-jump tunnel
+    createWallJumpSection(grid);
+
+    return grid;
 }
 
-// ---------------------------
-// BUTTON HANDLER
-// ---------------------------
-document.getElementById("generateBtn").addEventListener("click", () => {
-    exportJSON();
-});
+// Creates a narrow corridor requiring wall jump
+function createWallJumpSection(grid) {
+    const x = rand(COLS-3) + 1;
+    for (let y = 5; y < 15; y++) {
+        grid[y][x] = 1;
+        grid[y][x+2] = 1;
+    }
+}
+
+// Draw level on canvas
+function drawLevel() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+            if (level[r][c] === 1) {
+                ctx.fillStyle = "white";
+                ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            }
+        }
+    }
+}
+
+function rand(max) {
+    return Math.floor(Math.random() * max);
+}
