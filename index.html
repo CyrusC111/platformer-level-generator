@@ -2,17 +2,21 @@
 <html>
 <head>
     <title>Level Generator</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #111; color: white; font-family: Arial; text-align: center; }
+        canvas { background: #222; margin-top: 20px; }
+        textarea { width: 80%; height: 200px; margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 18px; margin-top: 20px; }
+    </style>
 </head>
 <body>
+    <h1>Level Generator</h1>
+    <button id="generateBtn">Generate Level</button>
+    <br>
+    <canvas id="levelCanvas"></canvas>
+    <br>
+    <textarea id="jsonOutput"></textarea>
 
-<h1>Level Generator</h1>
-
-<button id="generateButton">Generate Level</button>
-<button id="downloadButton">Download JSON</button>
-
-<canvas id="preview" width="600" height="600"></canvas>
-
-<script src="generator.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
