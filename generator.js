@@ -1,69 +1,54 @@
-function generateLevel(width, height) {
-    // Create empty grid
-    let grid = [];
-    for (let y = 0; y < height; y++) {
-        grid[y] = [];
-        for (let x = 0; x < width; x++) {
-            grid[y][x] = 0; // empty
-        }
-    }
+const canvas = document.getElementById("levelCanvas");
+const ctx = canvas.getContext("2d");
 
-    // --- PLATFORM GENERATOR ---
-    let y = Math.floor(height * 0.8); // start near bottom
-    let x = 0;
+canvas.width = 800;
+canvas.height = 600;
 
-    while (x < width) {
-        let platformLength = Math.floor(Math.random() * 8) + 6; // 6–14 tiles
-        let platformHeightChange = Math.floor(Math.random() * 3) - 1; // up/down/same
-
-        // Adjust height, but keep inside grid
-        y += platformHeightChange;
-        y = Math.min(height - 2, Math.max(3, y));
-
-        // Create platform section
-        for (let i = 0; i < platformLength && x < width; i++) {
-            grid[y][x] = 1;
-            x++;
-        }
-
-        // Random gap between platforms
-        x += Math.floor(Math.random() * 3); // 0–2 empty tiles
-    }
-
-    // --- WALLJUMP SECTIONS ---
-    for (let i = 0; i < 4; i++) {
-        let wx = Math.floor(Math.random() * (width - 3)) + 1;
-        let wy = Math.floor(height * 0.4);
-
-        // tall vertical walls facing each other
-        for (let h = 0; h < 8; h++) {
-            if (wy + h < height) {
-                grid[wy + h][wx] = 1;
-                grid[wy + h][wx + 3] = 1;
-            }
-        }
-    }
-
-    return grid;
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// BUTTON HANDLER (HTML calls this)
-function generate() {
-    let width = parseInt(document.getElementById("width").value);
-    let height = parseInt(document.getElementById("height").value);
+function generateLevel() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let grid = generateLevel(width, height);
+    const lines = [];
 
-    let output = {
-        width: width,
-        height: height,
-        tiles: grid
-    };
+    let x = 100;
+    let y = rand(100, 500);
 
-    document.getElementById("result").value = JSON.stringify(output, null, 2);
+    for (let i = 0; i < 12; i++) {
+
+        let length = rand(80, 200);
+        let verticalChance = Math.random() < 0.3;
+
+        let nextX = x + length;
+        let nextY = y;
+
+        if (verticalChance) {
+            // vertical segment
+            nextX = x;
+            nextY = y + rand(-150, 150);
+        }
+
+        ctx.beginPath();
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = "white";
+        ctx.moveTo(x, y);
+        ctx.lineTo(nextX, nextY);
+        ctx.stroke();
+
+        lines.push({
+            x1: x, y1: y,
+            x2: nextX, y2: nextY,
+            type: verticalChance ? "vertical" : "horizontal"
+        });
+
+        x = nextX;
+        y = nextY;
+    }
+
+    const jsonOutput = document.getElementById("jsonOutput");
+    jsonOutput.value = JSON.stringify({ lines }, null, 2);
 }
 
-
-function rand(max) {
-    return Math.floor(Math.random() * max);
-}
+document.getElementById("generateBtn").addEventListener("click", generateLevel);
